@@ -35,11 +35,14 @@ import com.st.novatech.springlms.model.Branch;
 import com.st.novatech.springlms.model.Loan;
 import com.st.novatech.springlms.util.ThrowingRunnable;
 
+import org.springframework.stereotype.Service;
+
 /**
  * The "service" class to help UIs for borrowers.
  *
  * @author Jonathan Lovelace
  */
+@Service("BorrowerService")
 public final class BorrowerServiceImpl implements BorrowerService {
 	/**
 	 * The DAO for the "branches" table.
