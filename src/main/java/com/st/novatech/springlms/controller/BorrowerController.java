@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,14 +24,23 @@ import com.st.novatech.springlms.exception.TransactionException;
 import com.st.novatech.springlms.model.Book;
 import com.st.novatech.springlms.model.Borrower;
 import com.st.novatech.springlms.model.Branch;
+import com.st.novatech.springlms.model.Copies;
 import com.st.novatech.springlms.model.Loan;
 import com.st.novatech.springlms.service.BorrowerService;
 
 @RestController
 public class BorrowerController {
 	
+	/**
+	 * Borrower Service
+	 */
 	@Autowired
 	BorrowerService borrowerService;
+	
+	/**
+	 * Logger for handling errors in the DAO layer.
+	 */
+	private static final Logger LOGGER = Logger.getLogger(BorrowerService.class.getName());
 	
 	/**
 	 * allows a borrower to borrow a book from a branch and lets the client know of the status
@@ -81,25 +92,24 @@ public class BorrowerController {
 	 * 
 	 * @param branchId	used to get a list of book copies associated with the given branchId (branch)
 	 * @return	a list of book copies associated with the given branch Id if the branch associated to
-	 * the branch id exists or an internal server error (500) if the roll back fails
+	 * the branch id exists
 	 * @throws TransactionException	A retrieval exception will be thrown if the branch associated to
 	 * the branch id given does not exist or if the search for the book copies list failed.
 	 */
 	@RequestMapping(path = "/branch/{branchId}/books/copies", method = RequestMethod.GET)
-	public ResponseEntity<Map<Book, Integer>> getAllBranchCopies(@PathVariable("branchId") int branchId) throws TransactionException {
+	public ResponseEntity<List<Copies>> getAllBranchCopies(@PathVariable("branchId") int branchId) throws TransactionException {
 		try {
 			Branch foundBranch = borrowerService.getbranch(branchId);
 			if(foundBranch == null) {
 				throw new RetrieveException("Requested branch not found");
 			}
-			Map<Book, Integer> listOfAllBranchCopies = borrowerService.getAllBranchCopies(foundBranch);
-			return new ResponseEntity<Map<Book, Integer>>(listOfAllBranchCopies, HttpStatus.OK);
-		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			List<Copies> listOfAllBranchCopies = borrowerService.getAllBranchCopies(foundBranch);
+			return new ResponseEntity<List<Copies>>(listOfAllBranchCopies, HttpStatus.OK);
+		} catch (TransactionException e) {
+			throw e;
+		} catch (Exception exception) {
+			LOGGER.log(Level.SEVERE, "Error Occured while trying to retrieve a list of copies from a branch", exception);
+			throw new RetrieveException("Had some trouble finding the list of copies");
 		}
 	}
 	
@@ -298,7 +308,7 @@ public class BorrowerController {
 		try {
 			Loan loan = borrowerService.getLoan(cardNo, branchId, bookId);
 			if(loan == null) {
-				throw new RetrieveException("Requested loan not found");
+				 throw new RetrieveException("Requested loan not found");
 			} else {
 				return new ResponseEntity<Loan>(loan, HttpStatus.OK);
 			}
@@ -309,5 +319,17 @@ public class BorrowerController {
 				throw exception;
 			}
 		}
+	}
+	
+	/**
+	 * Gives client a list of all branches
+	 * 
+	 * @return	a list of all branches
+	 * @throws TransactionException	if something goes wrong with the execution of the query (throws a criticalError)
+	 */
+	@GetMapping(path = "/branches")
+	public ResponseEntity<List<Branch>> getAllBranches() throws TransactionException {
+		List<Branch> listOfAllBranches = borrowerService.getAllBranches();
+		return new ResponseEntity<List<Branch>>(listOfAllBranches, HttpStatus.OK);
 	}
 }

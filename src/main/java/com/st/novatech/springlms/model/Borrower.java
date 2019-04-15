@@ -1,6 +1,20 @@
 package com.st.novatech.springlms.model;
 
+import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * A user of the library who is able to check out books.
@@ -8,40 +22,57 @@ import java.util.Objects;
  * @author Salem Ozaki
  * @author Jonathan Lovelace
  */
-public class Borrower {
+@Entity
+@Table(name = "tbl_borrower")
+public class Borrower implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * The borrower's card number, used as this object's identity.
 	 */
-	private final int cardNo;
+	@Id
+	@Column(name = "cardNo")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int cardNo;
 	/**
 	 * The borrower's name.
 	 */
+	@Column(name = "name")
 	private String name;
 	/**
 	 * The borrower's address.
 	 */
+	@Column(name = "address")
 	private String address;
 	/**
 	 * The borrower's phone number.
 	 */
+	@Column(name = "phone")
 	private String phone;
 
+	@JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "compositeKey.borrower")
+	private List<Loan> loans;
+	
 	/**
-	 * To construct a Borrower object callers must supply the card number, name,
-	 * address, and phone number.
-	 *
-	 * @param cardNo  the borrower's card number
-	 * @param name    the borrower's name, which should not be null.
-	 * @param address the borrower's address, which should not be null.
-	 * @param phone   the borrower's phone number, as a string, which should not be
-	 *                null.
+	 * Get list of loans belonging to this borrower
+	 * 
+	 * @return	get list of loans belonging to this borrower
 	 */
-	public Borrower(final int cardNo, final String name, final String address,
-			final String phone) {
-		this.cardNo = cardNo;
-		this.name = name;
-		this.address = address;
-		this.phone = phone;
+	public List<Loan> getLoans() {
+		return loans;
+	}
+
+	/**
+	 * Set new list of loans
+	 * 
+	 * @param loans	set new list of loans for this borrower
+	 */
+	public void setLoans(List<Loan> loans) {
+		this.loans = loans;
 	}
 
 	/**
@@ -105,6 +136,15 @@ public class Borrower {
 	 */
 	public int getCardNo() {
 		return cardNo;
+	}
+
+	/**
+	 * Change cardNo for the borrower
+	 * 
+	 * @param cardNo the new cardNo
+	 */
+	public void setCardNo(int cardNo) {
+		this.cardNo = cardNo;
 	}
 
 	/**

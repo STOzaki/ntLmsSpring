@@ -1,6 +1,20 @@
 package com.st.novatech.springlms.model;
 
+import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * A branch of a library.
@@ -8,32 +22,53 @@ import java.util.Objects;
  * @author Salem Ozaki
  * @author Jonathan Lovelace
  */
-public class Branch {
+@Entity
+@Table(name = "tbl_library_branch")
+public class Branch implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * The ID number used to identify this branch in the database.
 	 */
-	private final int id;
+	@Id
+	@Column(name = "branchId")
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private int id;
 	/**
 	 * The name of the branch.
 	 */
+	@Column(name = "branchName")
 	private String name;
 	/**
 	 * The address of the branch.
 	 */
+	@Column(name = "branchAddress")
 	private String address;
+	
+	/**
+	 * list of loans from this branch
+	 */
+	@JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "compositeKey.branch")
+	private List<Loan> loans;
+	
+	/**
+	 * Get list of loans from this branch
+	 * @return	get list of loans from this branch
+	 */
+	public List<Loan> getLoans() {
+		return loans;
+	}
 
 	/**
-	 * To construct a branch object, callers must supply its ID number, name, and
-	 * address.
-	 *
-	 * @param id      the ID number to identify this branch.
-	 * @param name    The name of the branch
-	 * @param address The address of the branch
+	 * Set new list of loans from this branch
+	 * @param loans new list of loans from this branch
 	 */
-	public Branch(final int id, final String name, final String address) {
-		this.id = id;
-		this.name = name;
-		this.address = address;
+	public void setLoans(List<Loan> loans) {
+		this.loans = loans;
 	}
 
 	/**
@@ -74,6 +109,14 @@ public class Branch {
 	 */
 	public int getId() {
 		return id;
+	}
+
+	/**
+	 * Change id of the branch.
+	 * @param id the branch's new id
+	 */
+	public void setId(final int id) {
+		this.id = id;
 	}
 
 	/**
