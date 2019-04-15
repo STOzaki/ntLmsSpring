@@ -215,11 +215,7 @@ public class BorrowerController {
 	public ResponseEntity<Borrower> getBorrowerById(@PathVariable("cardNo") int cardNo) throws TransactionException {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
-			if(foundBorrower == null) {
-				throw new RetrieveException("Requested borrower not found");
-			} else {
-				return new ResponseEntity<Borrower>(foundBorrower, HttpStatus.OK);
-			}
+			return new ResponseEntity<Borrower>(foundBorrower, HttpStatus.OK);
 		} catch (TransactionException exception) {
 			if(exception.getSuppressed().length > 0) {
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -241,11 +237,7 @@ public class BorrowerController {
 	public ResponseEntity<Branch> getbranch(@PathVariable("branchId") int branchId) throws TransactionException {
 		try {
 			Branch foundBranch = borrowerService.getbranch(branchId);
-			if(foundBranch == null) {
-				throw new RetrieveException("Requested branch not found");
-			} else {
-				return new ResponseEntity<Branch>(foundBranch, HttpStatus.OK);
-			}
+			return new ResponseEntity<Branch>(foundBranch, HttpStatus.OK);
 		} catch (TransactionException exception) {
 			if(exception.getSuppressed().length > 0) {
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -267,11 +259,7 @@ public class BorrowerController {
 	public ResponseEntity<Book> getBook(@PathVariable("bookId") int bookId) throws TransactionException {
 		try {
 			Book foundBook = borrowerService.getBook(bookId);
-			if(foundBook == null) {
-				throw new RetrieveException("Requested book not found");
-			} else {
-				return new ResponseEntity<Book>(foundBook, HttpStatus.OK);
-			}
+			return new ResponseEntity<Book>(foundBook, HttpStatus.OK);
 		} catch (TransactionException exception) {
 			if(exception.getSuppressed().length > 0) {
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -297,11 +285,7 @@ public class BorrowerController {
 			@PathVariable("bookId") int bookId) throws TransactionException {
 		try {
 			Loan loan = borrowerService.getLoan(cardNo, branchId, bookId);
-			if(loan == null) {
-				throw new RetrieveException("Requested loan not found");
-			} else {
-				return new ResponseEntity<Loan>(loan, HttpStatus.OK);
-			}
+			return new ResponseEntity<Loan>(loan, HttpStatus.OK);
 		} catch (TransactionException exception) {
 			if(exception.getSuppressed().length > 0) {
 				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
