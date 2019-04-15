@@ -6,6 +6,18 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
 
+import javax.persistence.Column;
+import javax.persistence.EmbeddedId;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * An object representing the loan of a book. Unlike every other model class,
  * this has no ID field; instead, its identity consists in the intersection of
@@ -14,47 +26,66 @@ import java.util.Optional;
  * @author Salem Ozaki
  * @author Jonathan Lovelace
  */
+@Entity
+@Table(name = "tbl_book_loans")
 public class Loan {
+	
+	@EmbeddedId
+	private LoanCompositeKey id;
 	/**
 	 * The book that was borrowed.
 	 */
-	private final Book book;
+	@JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="bookId", insertable = false, updatable = false)
+	private Book book;
 	/**
 	 * The borrower who checked out the book.
 	 */
-	private final Borrower borrower;
+	@JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="cardNo", insertable = false, updatable = false)
+	private Borrower borrower;
 	/**
 	 * The branch from which the book was checked out.
 	 */
-	private final Branch branch;
+	@JsonBackReference
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name="branchId", insertable = false, updatable = false)
+	private Branch branch;
 	/**
 	 * When the book was checked out.
 	 */
+	@Column(name = "dateOut")
 	private LocalDateTime dateOut;
 	/**
 	 * When the book is due.
 	 */
+	@Column(name = "dueDate")
 	private LocalDate dueDate;
-
-	/**
-	 * To construct a Loan object, the caller must supply the book, borrower, and
-	 * branch that identify the loan in question and the dates the book was checked
-	 * out and is due.
-	 *
-	 * @param book     the book that was checked out
-	 * @param borrower the borrower who checked it out
-	 * @param branch   the branch from which it was borrowed
-	 * @param dateOut  when it was checked out
-	 * @param dueDate  when it is due
-	 */
-	public Loan(final Book book, final Borrower borrower, final Branch branch,
-			final LocalDateTime dateOut, final LocalDate dueDate) {
-		this.book = book;
-		this.borrower = borrower;
-		this.branch = branch;
-		this.dateOut = dateOut;
-		this.dueDate = dueDate;
-	}
+//
+//	/**
+//	 * To construct a Loan object, the caller must supply the book, borrower, and
+//	 * branch that identify the loan in question and the dates the book was checked
+//	 * out and is due.
+//	 *
+//	 * @param book     the book that was checked out
+//	 * @param borrower the borrower who checked it out
+//	 * @param branch   the branch from which it was borrowed
+//	 * @param dateOut  when it was checked out
+//	 * @param dueDate  when it is due
+//	 */
+//	public Loan(final Book book, final Borrower borrower, final Branch branch,
+//			final LocalDateTime dateOut, final LocalDate dueDate) {
+//		this.book = book;
+//		this.borrower = borrower;
+//		this.branch = branch;
+//		this.dateOut = dateOut;
+//		this.dueDate = dueDate;
+//	}
 
 	/**
 	 * Get the book that is involved in this loan.
@@ -78,6 +109,30 @@ public class Loan {
 	 */
 	public Branch getBranch() {
 		return branch;
+	}
+
+	/**
+	 * Set new book in this loan
+	 * @param book	book to be set to
+	 */
+	public void setBook(Book book) {
+		this.book = book;
+	}
+
+	/**
+	 * Set new borrower in this loan
+	 * @param borrower	borrower to be set to
+	 */
+	public void setBorrower(Borrower borrower) {
+		this.borrower = borrower;
+	}
+
+	/**
+	 * Set new branch in this loan
+	 * @param branch	branch to be set to
+	 */
+	public void setBranch(Branch branch) {
+		this.branch = branch;
 	}
 
 	/**
@@ -160,12 +215,13 @@ public class Loan {
 
 	@Override
 	public String toString() {
-		return String.format("Loan: %s by %s borrowed from %s by %s on %s, due %s",
-				book.getTitle(),
-				Optional.ofNullable(book.getAuthor()).map(Author::getName)
-						.orElse("an unknown author"),
-				branch.getName(), borrower.getName(),
-				Objects.toString(dateOut, "an unknown date"),
-				Objects.toString(dueDate, "never"));
+		return "Loan: the book title is " + book.getTitle();
+//				String.format("Loan: %s by %s borrowed from %s by %s on %s, due %s",
+//				book.getTitle(),
+//				Optional.ofNullable(book.getAuthor()).map(Author::getName)
+//						.orElse("an unknown author"),
+//				branch.getName(), borrower.getName(),
+//				Objects.toString(dateOut, "an unknown date"),
+//				Objects.toString(dueDate, "never"));
 	}
 }
