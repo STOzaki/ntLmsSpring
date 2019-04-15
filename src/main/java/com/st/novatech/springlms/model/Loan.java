@@ -31,31 +31,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Loan {
 	
 	@EmbeddedId
-	private LoanCompositeKey id;
-	/**
-	 * The book that was borrowed.
-	 */
-//	@JsonBackReference
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="bookId", insertable = false, updatable = false)
-	private Book book;
-	/**
-	 * The borrower who checked out the book.
-	 */
-//	@JsonBackReference
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="cardNo", insertable = false, updatable = false)
-	private Borrower borrower;
-	/**
-	 * The branch from which the book was checked out.
-	 */
-//	@JsonBackReference
-    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="branchId", insertable = false, updatable = false)
-	private Branch branch;
+	private LoanCompositeKey compositeKey;
+	
 	/**
 	 * When the book was checked out.
 	 */
@@ -92,7 +69,7 @@ public class Loan {
 	 * @return the book that was checked out
 	 */
 	public Book getBook() {
-		return book;
+		return compositeKey.getBook();
 	}
 
 	/**
@@ -100,7 +77,7 @@ public class Loan {
 	 * @return the borrower who checked the book out.
 	 */
 	public Borrower getBorrower() {
-		return borrower;
+		return compositeKey.getBorrower();
 	}
 
 	/**
@@ -108,31 +85,7 @@ public class Loan {
 	 * @return the branch from which the book was borrowed.
 	 */
 	public Branch getBranch() {
-		return branch;
-	}
-
-	/**
-	 * Set new book in this loan
-	 * @param book	book to be set to
-	 */
-	public void setBook(Book book) {
-		this.book = book;
-	}
-
-	/**
-	 * Set new borrower in this loan
-	 * @param borrower	borrower to be set to
-	 */
-	public void setBorrower(Borrower borrower) {
-		this.borrower = borrower;
-	}
-
-	/**
-	 * Set new branch in this loan
-	 * @param branch	branch to be set to
-	 */
-	public void setBranch(Branch branch) {
-		this.branch = branch;
+		return compositeKey.getBranch();
 	}
 
 	/**
@@ -173,7 +126,7 @@ public class Loan {
 	 */
 	@Override
 	public int hashCode() {
-		return Objects.hash(book, borrower, branch);
+		return Objects.hash(getBook().getId(), getBorrower().getCardNo(), getBranch().getId());
 	}
 
 	/**
@@ -185,9 +138,9 @@ public class Loan {
 		if (this == obj) {
 			return true;
 		} else if (obj instanceof Loan) {
-			return Objects.equals(book, ((Loan) obj).getBook())
-					&& Objects.equals(borrower, ((Loan) obj).getBorrower())
-					&& Objects.equals(branch, ((Loan) obj).getBranch())
+			return Objects.equals(getBook(), ((Loan) obj).getBook())
+					&& Objects.equals(getBorrower(), ((Loan) obj).getBorrower())
+					&& Objects.equals(getBranch(), ((Loan) obj).getBranch())
 					&& timesEqual(dateOut, ((Loan) obj).getDateOut())
 					&& Objects.equals(dueDate, ((Loan) obj).getDueDate());
 		} else {
@@ -215,7 +168,7 @@ public class Loan {
 
 	@Override
 	public String toString() {
-		return "Loan: the book title is " + book.getTitle();
+		return "Loan: the book title is " + getBook().getTitle();
 //				String.format("Loan: %s by %s borrowed from %s by %s on %s, due %s",
 //				book.getTitle(),
 //				Optional.ofNullable(book.getAuthor()).map(Author::getName)

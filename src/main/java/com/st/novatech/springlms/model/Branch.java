@@ -1,5 +1,6 @@
 package com.st.novatech.springlms.model;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,7 +24,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(name = "tbl_library_branch")
-public class Branch {
+public class Branch implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * The ID number used to identify this branch in the database.
 	 */
@@ -47,7 +52,7 @@ public class Branch {
 	 */
 	@JsonBackReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "branch")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "compositeKey.branch")
 	private List<Loan> loans;
 	
 	/**

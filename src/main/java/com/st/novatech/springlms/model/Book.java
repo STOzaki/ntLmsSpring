@@ -1,5 +1,6 @@
 package com.st.novatech.springlms.model;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,7 +24,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(name = "tbl_book")
-public class Book {
+public class Book implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * The ID number used to refer to this book in the database.
 	 */
@@ -41,7 +46,7 @@ public class Book {
 	 */
 	@JsonBackReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "book")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "compositeKey.book")
 	private List<Loan> loans;
 //	/**
 //	 * The author of the book.

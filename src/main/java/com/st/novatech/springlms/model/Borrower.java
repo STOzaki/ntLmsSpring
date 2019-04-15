@@ -1,5 +1,6 @@
 package com.st.novatech.springlms.model;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
@@ -23,7 +24,11 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  */
 @Entity
 @Table(name = "tbl_borrower")
-public class Borrower {
+public class Borrower implements Serializable {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	/**
 	 * The borrower's card number, used as this object's identity.
 	 */
@@ -49,7 +54,7 @@ public class Borrower {
 
 	@JsonBackReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
-	@OneToMany(fetch = FetchType.LAZY, mappedBy = "borrower")
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "compositeKey.borrower")
 	private List<Loan> loans;
 	
 	/**
