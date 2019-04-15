@@ -35,7 +35,7 @@ public class Loan {
 	/**
 	 * The book that was borrowed.
 	 */
-	@JsonBackReference
+//	@JsonBackReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="bookId", insertable = false, updatable = false)
@@ -43,7 +43,7 @@ public class Loan {
 	/**
 	 * The borrower who checked out the book.
 	 */
-	@JsonBackReference
+//	@JsonBackReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="cardNo", insertable = false, updatable = false)
@@ -51,7 +51,7 @@ public class Loan {
 	/**
 	 * The branch from which the book was checked out.
 	 */
-	@JsonBackReference
+//	@JsonBackReference
     @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="branchId", insertable = false, updatable = false)
