@@ -1,29 +1,30 @@
 package com.st.novatech.springlms.service;
 
+import java.sql.Date;
 //import java.io.IOException;
 //import java.sql.Connection;
-//import java.sql.SQLException;
+import java.sql.SQLException;
 //import java.time.Clock;
-//import java.time.LocalDate;
-//import java.time.LocalDateTime;
-//import java.util.List;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 //import java.util.Map;
-//import java.util.Optional;
+import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-//import java.util.stream.Collectors;
-//
+import java.util.stream.Collectors;
 import com.st.novatech.springlms.dao.BookDao;
 import com.st.novatech.springlms.dao.BookLoansDao;
 import com.st.novatech.springlms.dao.BorrowerDao;
-//import com.st.novatech.springlms.dao.CopiesDao;
+import com.st.novatech.springlms.dao.CopiesDao;
 //import com.st.novatech.springlms.dao.DBConnectionFactory;
 import com.st.novatech.springlms.dao.LibraryBranchDao;
-//import com.st.novatech.springlms.exception.DeleteException;
-//import com.st.novatech.springlms.exception.InsertException;
+import com.st.novatech.springlms.exception.DeleteException;
+import com.st.novatech.springlms.exception.InsertException;
+import com.st.novatech.springlms.exception.RetrieveException;
 //import com.st.novatech.springlms.exception.RetrieveException;
-//import com.st.novatech.springlms.exception.TransactionException;
-//import com.st.novatech.springlms.exception.UnknownSQLException;
+import com.st.novatech.springlms.exception.TransactionException;
+import com.st.novatech.springlms.exception.UnknownSQLException;
 import com.st.novatech.springlms.model.Book;
 import com.st.novatech.springlms.model.Borrower;
 import com.st.novatech.springlms.model.Branch;
@@ -50,10 +51,11 @@ public final class BorrowerServiceImpl implements BorrowerService {
 	 */
 	@Autowired
 	private BookLoansDao loanDao;
-//	/**
-//	 * The DAO for the "copies" table.
-//	 */
-//	private final CopiesDao copiesDao;
+	/**
+	 * The DAO for the "copies" table.
+	 */
+	@Autowired
+	private CopiesDao copiesDao;
 	/**
 	 * The DAO for the "borrowers" table.
 	 */
@@ -141,28 +143,36 @@ public final class BorrowerServiceImpl implements BorrowerService {
 //			throw rollback(new UnknownSQLException("Getting all branches failed", except));
 //		}
 //	}
-//
-//	@Override
-//	public Loan borrowBook(final Borrower borrower, final Book book,
-//			final Branch branch, final LocalDateTime dateOut,
-//			final LocalDate dueDate) throws TransactionException {
-//		try {
-//			if (loanDao.get(book, borrower, branch) == null) {
-//				final int copies = copiesDao.getCopies(branch, book);
-//				if (copies > 0) {
-//					copiesDao.setCopies(branch, book, copies - 1);
-//					return loanDao.create(book, borrower, branch, dateOut, dueDate);
-//				} else {
-//					return null;
-//				}
-//			} else {
-//				return null; // TODO: Add getLoan() method to interface
-//			}
-//		} catch (final SQLException except) {
-//			LOGGER.log(Level.SEVERE, "SQL error while creating a loan record", except);
+
+	@Override
+	public Loan borrowBook(final Borrower borrower, final Book book,
+			final Branch branch, final LocalDateTime dateOut,
+			final LocalDate dueDate) throws TransactionException {
+		try {
+			if (loanDao.getLoanByIds(book.getId(), borrower.getCardNo(),
+					branch.getId()) == null) {
+				
+				final int copies = getCopies(branch, book);
+				if (copies > 0) {
+					setCopies(branch, book, copies - 1);
+					loanDao.createLoanWithIds(book.getId(), branch.getId(),
+				borrower.getCardNo(), Date.valueOf(dateOut.toLocalDate()),
+				Date.valueOf(dueDate));
+
+					return loanDao.getLoanByIds(book.getId(), borrower.getCardNo(),
+						branch.getId());
+				} else {
+					return null;
+				}
+			} else {
+				return null; // TODO: Add getLoan() method to interface
+			}
+		} catch (final TransactionException except) {
+			LOGGER.log(Level.SEVERE, "SQL error while creating a loan record", except);
+			throw new UnknownSQLException("Creating a loan failed", except);
 //			throw rollback(new InsertException("Creating a loan failed", except));
-//		}
-//	}
+		}
+	}
 //
 //	@Override
 //	public Map<Book, Integer> getAllBranchCopies(final Branch branch)
@@ -174,50 +184,58 @@ public final class BorrowerServiceImpl implements BorrowerService {
 //			throw rollback(new UnknownSQLException("Getting branch copy records failed", except));
 //		}
 //	}
-//
-//	@Override
-//	public Boolean returnBook(final Borrower borrower, final Book book,
-//			final Branch branch, final LocalDate dueDate) throws TransactionException {
-//		final Optional<Loan> loan;
+
+	@Override
+	public Boolean returnBook(final Borrower borrower, final Book book,
+			final Branch branch, final LocalDate dueDate)
+					throws TransactionException {
+		final Loan loan;
 //		try {
-//			loan = Optional.ofNullable(loanDao.get(book, borrower, branch));
+			loan = loanDao.getLoanByIds(book.getId(), branch.getId(), borrower.getCardNo());
 //		} catch (final SQLException except) {
 //			LOGGER.log(Level.SEVERE, "SQL error while getting loan details", except);
-//			throw rollback(new UnknownSQLException("Getting loan details failed", except));
+//			throw new InsertException("Getting loan details failed", except);
+////			throw rollback(new UnknownSQLException("Getting loan details failed", except));
 //		}
-//		if (loan.isPresent()) {
-//			if (LocalDate.now(clock).isAfter(loan.get().getDueDate())) {
-//				return false;
-//			} else {
+		
+		if (loan != null) {
+			if (LocalDate.now().isAfter(loan.getDueDate())) {
+				return false;
+			} else {
 //				try {
-//					final int copies = copiesDao.getCopies(branch, book);
-//					copiesDao.setCopies(branch, book, copies + 1);
+					final int copies = getCopies(branch, book);
+					setCopies(branch, book, copies + 1);
 //				} catch (final SQLException except) {
 //					LOGGER.log(Level.SEVERE, "SQL error while incrementing copies on return", except);
-//					throw rollback(new UnknownSQLException("Incrementing copies on return failed", except));
+//					throw new UnknownSQLException("Incrementing copies on return failed", except);
+////					throw rollback(new UnknownSQLException("Incrementing copies on return failed", except));
 //				}
 //				try {
-//					loanDao.delete(loan.get());
+					loanDao.delete(loan);
 //				} catch (final SQLException except) {
 //					LOGGER.log(Level.SEVERE, "SQL error while removing a loan record", except);
-//					throw rollback(new DeleteException("Removing loan record failed", except));
+//					throw new DeleteException("Removing loan record failed", except);
+////					throw rollback(new DeleteException("Removing loan record failed", except));
 //				}
-//				return true;
-//			}
-//		} else {
-//			return null;
-//		}
-//	}
-//
+				return true;
+			}
+		} else {
+			return null;
+		}
+	}
+
 //	@Override
-//	public List<Branch> getAllBranchesWithLoan(final Borrower borrower)
-//			throws TransactionException {
-//		return getAllBorrowedBooks(borrower).parallelStream().map(Loan::getBranch)
+//	public List<Branch> getAllBranchesWithLoan(final Borrower borrower) {
+////			throws TransactionException {
+//		return getAllBorrowedBooks(borrower).parallelStream().map(b -> b.getBranch())
 //				.collect(Collectors.toList());
 //	}
-//
-//	@Override
-//	public List<Loan> getAllBorrowedBooks(final Borrower borrower)
+
+	@Override
+	public List<Loan> getAllBorrowedBooks(final Borrower borrower) {
+		return loanDao.findAll().parallelStream()
+				.filter(loan -> borrower.equals(loan.getBorrower()))
+				.collect(Collectors.toList());
 //			throws TransactionException {
 //		try {
 //			return loanDao.getAll().parallelStream()
@@ -227,7 +245,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 //			LOGGER.log(Level.SEVERE, "SQL error while getting loan records", except);
 //			throw rollback(new UnknownSQLException("Getting loan records failed", except));
 //		}
-//	}
+	}
 
 	@Override
 	public Borrower getBorrower(final int cardNo) {
@@ -293,5 +311,55 @@ public final class BorrowerServiceImpl implements BorrowerService {
 //			throw rollback(new RetrieveException("Getting a Loan failed", except));
 //		}
 		return foundLoan;
+	}
+	
+	/**
+	 * Set the number of copies of a book held by a particular branch. If the number
+	 * is set to 0, the row is deleted from the database.
+	 *
+	 * @param branch     the branch in question
+	 * @param book       the book in question
+	 * @param noOfCopies the number of copies held by that branch; MUST not be
+	 *                   negative.
+	 * @throws TransationException on unexpected error in dealing with the database. WARNING (NEED to prevent user from passing negative numbers)
+	 */
+	protected void setCopies(Branch branch, Book book, int noOfCopies) throws TransactionException {
+		try {
+			if (noOfCopies < 0) {
+				throw new IllegalArgumentException(
+						"Number of copies must be nonnegative");
+			} else if (book == null || branch == null) {
+				// TODO: throw IllegalArgumentException?
+			} else if (noOfCopies == 0) {
+				copiesDao.deleteCopies(branch.getId(), book.getId());
+			} else if (getCopies(branch, book) == 0) {
+				// TODO: Use INSERT ... ON DUPLICATE KEY UPDATE
+				copiesDao.createCopies(branch.getId(), book.getId(), noOfCopies);
+			} else {
+				copiesDao.updateCopies(noOfCopies, branch.getId(), book.getId());
+			}
+		} catch (SQLException e) {
+			throw new UnknownSQLException("Error with setting copies", e);
+		}
+	}
+	
+	/**
+	 * Get the copies entity for a given branch and book
+	 * 
+	 * @param branch	branch in question
+	 * @param book		book in question
+	 * @return			number of copies for a given branch and book
+	 * @throws TransactionException
+	 */
+	protected int getCopies(final Branch branch, final Book book) throws TransactionException {
+		try {
+			if (branch == null || book == null) {
+				return 0; // TODO: Throw IllegalArgumentException instead?
+			} else {
+				return copiesDao.getCopiesByIds(branch.getId(), book.getId()).getNoOfCopies();
+			}
+		} catch (SQLException e) {
+			throw new RetrieveException("Error with getting copies");
+		}
 	}
 }
