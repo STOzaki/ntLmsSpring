@@ -63,16 +63,18 @@ public interface BorrowerService extends Service {
 	 *
 	 * @param borrower in question
 	 * @return all branches the borrower owes a book return to.
+	 * @throws TransactionException if something goes wrong with the retrieval
 	 */
-	List<Branch> getAllBranchesWithLoan(Borrower borrower);
+	List<Branch> getAllBranchesWithLoan(Borrower borrower) throws TransactionException;
 
 	/**
 	 * Get all book loans the borrower has borrowed from any library branch.
 	 *
 	 * @param borrower in question
 	 * @return the list of book loans the borrower has out from any library.
+	 * @throws TransactionException if something goes wrong with the retrieval
 	 */
-	List<Loan> getAllBorrowedBooks(Borrower borrower);
+	List<Loan> getAllBorrowedBooks(Borrower borrower) throws TransactionException;
 
 	/**
 	 * Get the borrower with the specified card number.

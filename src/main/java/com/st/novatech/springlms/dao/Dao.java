@@ -1,8 +1,5 @@
 package com.st.novatech.springlms.dao;
 
-import java.sql.SQLException;
-import java.util.List;
-
 /**
  * The base interface for almost all Data-Access Objects.
  *

@@ -3,7 +3,6 @@ package com.st.novatech.springlms.controller;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -13,14 +12,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.st.novatech.springlms.exception.AlreadyBorrowedException;
-import com.st.novatech.springlms.exception.NoCopiesException;
-import com.st.novatech.springlms.exception.RetrieveException;
 import com.st.novatech.springlms.exception.TransactionException;
 import com.st.novatech.springlms.model.Book;
 import com.st.novatech.springlms.model.Borrower;
@@ -53,21 +48,22 @@ public class BorrowerController {
 	 * 	else an appropriate http error code
 	 * @throws TransactionException		if something goes wrong with any of the transactions
 	 */
-	@RequestMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}/borrow", method = RequestMethod.POST)
+	@PostMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}/borrow")
 	public ResponseEntity<Loan> borrowBook(@PathVariable("cardNo") int cardNo,
 			@PathVariable("branchId") int branchId,
-			@PathVariable("bookId") int bookId) throws TransactionException, AlreadyBorrowedException, NoCopiesException {
-		Borrower foundBorrower = borrowerService.getBorrower(cardNo);
-		Book foundBook = borrowerService.getBook(bookId);
-		Branch foundBranch = borrowerService.getbranch(branchId);
-		if(foundBook == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested book");
-		} else if(foundBorrower == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested borrower");
-		} else if(foundBranch == null) {
-			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested branch");
-		} else {
-			try {
+			@PathVariable("bookId") int bookId) {
+
+		try {
+			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
+			Book foundBook = borrowerService.getBook(bookId);
+			Branch foundBranch = borrowerService.getbranch(branchId);
+			if(foundBook == null) {
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested book");
+			} else if(foundBorrower == null) {
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested borrower");
+			} else if(foundBranch == null) {
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested branch");
+			} else {
 				Loan foundLoan = borrowerService.getLoan(cardNo, branchId, bookId);
 				if(foundLoan != null) {
 					throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already borrowed " +
@@ -82,13 +78,10 @@ public class BorrowerController {
 						return new ResponseEntity<Loan>(newLoan, HttpStatus.CREATED);
 					}
 				}
-			} catch (TransactionException exception) {
-				if(exception.getSuppressed().length > 0) {
-					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-				} else {
-					throw exception;
-				}
 			}
+		} catch (TransactionException exception) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -103,8 +96,8 @@ public class BorrowerController {
 	 * @throws TransactionException	A retrieval exception will be thrown if the branch associated to
 	 * the branch id given does not exist or if the search for the book copies list failed.
 	 */
-	@RequestMapping(path = "/branch/{branchId}/books/copies", method = RequestMethod.GET)
-	public ResponseEntity<List<Copies>> getAllBranchCopies(@PathVariable("branchId") int branchId) throws TransactionException {
+	@GetMapping(path = "/branch/{branchId}/books/copies")
+	public ResponseEntity<List<Copies>> getAllBranchCopies(@PathVariable("branchId") int branchId) {
 		try {
 			Branch foundBranch = borrowerService.getbranch(branchId);
 			if(foundBranch == null) {
@@ -112,11 +105,10 @@ public class BorrowerController {
 			}
 			List<Copies> listOfAllBranchCopies = borrowerService.getAllBranchCopies(foundBranch);
 			return new ResponseEntity<List<Copies>>(listOfAllBranchCopies, HttpStatus.OK);
-		} catch (TransactionException e) {
-			throw e;
-		} catch (Exception exception) {
+		} catch (TransactionException exception) {
 			LOGGER.log(Level.SEVERE, "Error Occured while trying to retrieve a list of copies from a branch", exception);
-			throw new RetrieveException("Had some trouble finding the list of copies");
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -136,7 +128,7 @@ public class BorrowerController {
 	 */
 	@DeleteMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}/return")
 	public ResponseEntity<String> returnBook(@PathVariable("cardNo") int cardNo,
-			@PathVariable("branchId") int branchId, @PathVariable("bookId") int bookId) throws TransactionException {
+			@PathVariable("branchId") int branchId, @PathVariable("bookId") int bookId) {
 		try {
 			Borrower borrower = borrowerService.getBorrower(cardNo);
 			Branch branch = borrowerService.getbranch(branchId);
@@ -160,11 +152,9 @@ public class BorrowerController {
 				}
 			}
 		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -177,7 +167,7 @@ public class BorrowerController {
 	 * @throws TransactionException retrieve exception if it cannot find the given borrower
 	 */
 	@GetMapping(path = "/borrower/{cardNo}/loansWithBranch")
-	public ResponseEntity<List<Branch>> getAllBranchesWithLoan(@PathVariable("cardNo") int cardNo) throws TransactionException {
+	public ResponseEntity<List<Branch>> getAllBranchesWithLoan(@PathVariable("cardNo") int cardNo) {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
 			if(foundBorrower == null) {
@@ -186,11 +176,9 @@ public class BorrowerController {
 			List<Branch> listOfBranchesForBorrowerWithLoans = borrowerService.getAllBranchesWithLoan(foundBorrower);
 			return new ResponseEntity<List<Branch>>(listOfBranchesForBorrowerWithLoans, HttpStatus.OK);
 		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -203,7 +191,7 @@ public class BorrowerController {
 	 * @throws TransactionException	retrieve exception if it cannot find the given borrower
 	 */
 	@GetMapping(path = "/borrower/{cardNo}/borrowerLoans")
-	public ResponseEntity<List<Loan>> getAllBorrowedBooks(@PathVariable("cardNo") int cardNo) throws TransactionException {
+	public ResponseEntity<List<Loan>> getAllBorrowedBooks(@PathVariable("cardNo") int cardNo) {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
 			if(foundBorrower == null) {
@@ -212,11 +200,9 @@ public class BorrowerController {
 			List<Loan> listOfLoansForBorrower = borrowerService.getAllBorrowedBooks(foundBorrower);
 			return new ResponseEntity<List<Loan>>(listOfLoansForBorrower, HttpStatus.OK);
 		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -228,8 +214,8 @@ public class BorrowerController {
 	 * or will return 500(an internal server error) the roll back fails
 	 * @throws TransactionException retrieve exception if it cannot find the requested borrower
 	 */
-	@RequestMapping(path="/borrower/{cardNo}", method = RequestMethod.GET)
-	public ResponseEntity<Borrower> getBorrowerById(@PathVariable("cardNo") int cardNo) throws TransactionException {
+	@GetMapping(path="/borrower/{cardNo}")
+	public ResponseEntity<Borrower> getBorrowerById(@PathVariable("cardNo") int cardNo) {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
 			if(foundBorrower == null) {
@@ -238,11 +224,9 @@ public class BorrowerController {
 				return new ResponseEntity<Borrower>(foundBorrower, HttpStatus.OK);
 			}
 		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -255,7 +239,7 @@ public class BorrowerController {
 	 * @throws TransactionException retrieve exception if it cannot find the requested branch
 	 */
 	@GetMapping(path = "/branch/{branchId}")
-	public ResponseEntity<Branch> getbranch(@PathVariable("branchId") int branchId) throws TransactionException {
+	public ResponseEntity<Branch> getbranch(@PathVariable("branchId") int branchId) {
 		try {
 			Branch foundBranch = borrowerService.getbranch(branchId);
 			if(foundBranch == null) {
@@ -264,11 +248,9 @@ public class BorrowerController {
 				return new ResponseEntity<Branch>(foundBranch, HttpStatus.OK);
 			}
 		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -281,7 +263,7 @@ public class BorrowerController {
 	 * @throws TransactionException	retrieve exception if it cannot find the requested book
 	 */
 	@GetMapping(path = "/book/{bookId}")
-	public ResponseEntity<Book> getBook(@PathVariable("bookId") int bookId) throws TransactionException {
+	public ResponseEntity<Book> getBook(@PathVariable("bookId") int bookId) {
 		try {
 			Book foundBook = borrowerService.getBook(bookId);
 			if(foundBook == null) {
@@ -290,11 +272,9 @@ public class BorrowerController {
 				return new ResponseEntity<Book>(foundBook, HttpStatus.OK);
 			}
 		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -308,10 +288,9 @@ public class BorrowerController {
 	 * @throws TransactionException send an internal server error code if rollback fails,
 	 * 	else sends a not found code
 	 */
-	@RequestMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}", method = RequestMethod.GET)
+	@GetMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}")
 	public ResponseEntity<Loan> getLoanByIds(@PathVariable("cardNo") int cardNo,
-			@PathVariable("branchId") int branchId,
-			@PathVariable("bookId") int bookId) throws TransactionException {
+			@PathVariable("branchId") int branchId, @PathVariable("bookId") int bookId) {
 		try {
 			Loan loan = borrowerService.getLoan(cardNo, branchId, bookId);
 			if(loan == null) {
@@ -320,11 +299,9 @@ public class BorrowerController {
 				return new ResponseEntity<Loan>(loan, HttpStatus.OK);
 			}
 		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
-			}
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
 		}
 	}
 	
@@ -335,8 +312,14 @@ public class BorrowerController {
 	 * @throws TransactionException	if something goes wrong with the execution of the query (throws a criticalError)
 	 */
 	@GetMapping(path = "/branches")
-	public ResponseEntity<List<Branch>> getAllBranches() throws TransactionException {
-		List<Branch> listOfAllBranches = borrowerService.getAllBranches();
-		return new ResponseEntity<List<Branch>>(listOfAllBranches, HttpStatus.OK);
+	public ResponseEntity<List<Branch>> getAllBranches() {
+		try {
+			List<Branch> listOfAllBranches = borrowerService.getAllBranches();
+			return new ResponseEntity<List<Branch>>(listOfAllBranches, HttpStatus.OK);
+		} catch (TransactionException exception) {
+			LOGGER.log(Level.SEVERE, "Something has gone wrong with the server", exception);
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Something went wrong with our server."
+					+ " Please contact your administrator for more information.");
+		}
 	}
 }

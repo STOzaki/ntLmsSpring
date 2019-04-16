@@ -21,8 +21,6 @@ import com.st.novatech.springlms.dao.CopiesDao;
 //import com.st.novatech.springlms.dao.DBConnectionFactory;
 import com.st.novatech.springlms.dao.LibraryBranchDao;
 import com.st.novatech.springlms.exception.CriticalSQLException;
-import com.st.novatech.springlms.exception.DeleteException;
-import com.st.novatech.springlms.exception.InsertException;
 import com.st.novatech.springlms.exception.RetrieveException;
 //import com.st.novatech.springlms.exception.RetrieveException;
 import com.st.novatech.springlms.exception.TransactionException;
@@ -32,7 +30,6 @@ import com.st.novatech.springlms.model.Borrower;
 import com.st.novatech.springlms.model.Branch;
 import com.st.novatech.springlms.model.Copies;
 import com.st.novatech.springlms.model.Loan;
-import com.st.novatech.springlms.util.ThrowingRunnable;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -171,7 +168,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 			} else {
 				return null; // TODO: Add getLoan() method to interface
 			}
-		} catch (final TransactionException except) {
+		} catch (final Exception except) {
 			LOGGER.log(Level.SEVERE, "SQL error while creating a loan record", except);
 			throw new UnknownSQLException("Creating a loan failed", except);
 //			throw rollback(new InsertException("Creating a loan failed", except));
@@ -195,61 +192,72 @@ public final class BorrowerServiceImpl implements BorrowerService {
 			final Branch branch, final LocalDate dueDate)
 					throws TransactionException {
 		final Loan loan;
-//		try {
+		try {
 			loan = loanDao.getLoanByIds(book.getId(), branch.getId(), borrower.getCardNo());
-//		} catch (final SQLException except) {
-//			LOGGER.log(Level.SEVERE, "SQL error while getting loan details", except);
-//			throw new InsertException("Getting loan details failed", except);
-////			throw rollback(new UnknownSQLException("Getting loan details failed", except));
-//		}
-		
-		if (loan != null) {
-			if (LocalDate.now().isAfter(loan.getDueDate())) {
-				return false;
+	//		} catch (final SQLException except) {
+	//			LOGGER.log(Level.SEVERE, "SQL error while getting loan details", except);
+	//			throw new InsertException("Getting loan details failed", except);
+	////			throw rollback(new UnknownSQLException("Getting loan details failed", except));
+	//		}
+			
+			if (loan != null) {
+				if (LocalDate.now().isAfter(loan.getDueDate())) {
+					return false;
+				} else {
+	//				try {
+						final int copies = getCopies(branch, book);
+						setCopies(branch, book, copies + 1);
+	//				} catch (final SQLException except) {
+	//					LOGGER.log(Level.SEVERE, "SQL error while incrementing copies on return", except);
+	//					throw new UnknownSQLException("Incrementing copies on return failed", except);
+	////					throw rollback(new UnknownSQLException("Incrementing copies on return failed", except));
+	//				}
+	//				try {
+						loanDao.delete(loan);
+	//				} catch (final SQLException except) {
+	//					LOGGER.log(Level.SEVERE, "SQL error while removing a loan record", except);
+	//					throw new DeleteException("Removing loan record failed", except);
+	////					throw rollback(new DeleteException("Removing loan record failed", except));
+	//				}
+					return true;
+				}
 			} else {
-//				try {
-					final int copies = getCopies(branch, book);
-					setCopies(branch, book, copies + 1);
-//				} catch (final SQLException except) {
-//					LOGGER.log(Level.SEVERE, "SQL error while incrementing copies on return", except);
-//					throw new UnknownSQLException("Incrementing copies on return failed", except);
-////					throw rollback(new UnknownSQLException("Incrementing copies on return failed", except));
-//				}
-//				try {
-					loanDao.delete(loan);
-//				} catch (final SQLException except) {
-//					LOGGER.log(Level.SEVERE, "SQL error while removing a loan record", except);
-//					throw new DeleteException("Removing loan record failed", except);
-////					throw rollback(new DeleteException("Removing loan record failed", except));
-//				}
-				return true;
+				return null;
 			}
-		} else {
-			return null;
+		} catch (final Exception exception) {
+			throw new UnknownSQLException("Committing the transaction failed", exception);
 		}
 	}
 
 	@Override
-	public List<Branch> getAllBranchesWithLoan(final Borrower borrower) {
-//			throws TransactionException {
-		return getAllBorrowedBooks(borrower).parallelStream().map(b -> b.getBranch())
-				.collect(Collectors.toList());
+	public List<Branch> getAllBranchesWithLoan(final Borrower borrower)
+			throws TransactionException {
+		try {
+			return getAllBorrowedBooks(borrower).parallelStream().map(b -> b.getBranch())
+					.collect(Collectors.toList());
+		} catch (final Exception exception) {
+			throw new RetrieveException("Committing the transaction failed", exception);
+		}
 	}
 
 	@Override
-	public List<Loan> getAllBorrowedBooks(final Borrower borrower) {
-		return loanDao.findAll().parallelStream()
-				.filter(loan -> borrower.equals(loan.getBorrower()))
-				.collect(Collectors.toList());
-//			throws TransactionException {
-//		try {
-//			return loanDao.getAll().parallelStream()
-//					.filter(loan -> borrower.equals(loan.getBorrower()))
-//					.collect(Collectors.toList());
-//		} catch (final SQLException except) {
-//			LOGGER.log(Level.SEVERE, "SQL error while getting loan records", except);
-//			throw rollback(new UnknownSQLException("Getting loan records failed", except));
-//		}
+	public List<Loan> getAllBorrowedBooks(final Borrower borrower) throws TransactionException {
+		try {
+			return loanDao.findAll().parallelStream()
+					.filter(loan -> borrower.equals(loan.getBorrower()))
+					.collect(Collectors.toList());
+	//			throws TransactionException {
+	//		try {
+	//			return loanDao.getAll().parallelStream()
+	//					.filter(loan -> borrower.equals(loan.getBorrower()))
+	//					.collect(Collectors.toList());
+	//		} catch (final SQLException except) {
+	//			LOGGER.log(Level.SEVERE, "SQL error while getting loan records", except);
+	//			throw rollback(new UnknownSQLException("Getting loan records failed", except));
+	//		}
+		} catch (final Exception exception) {
+			throw new RetrieveException("Committing the transaction failed", exception);
+		}
 	}
 
 	@Override
@@ -261,7 +269,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 			} else {
 				return null;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while retrieving a borrower", e);
 			throw new RetrieveException("We were unable to find the requested borrower due to errors.");
 		}
@@ -301,7 +309,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 			} else {
 				return null;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while retrieving a branch", e);
 			throw new RetrieveException("We were unable to find the requested branch due to errors.");
 		}
@@ -323,7 +331,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 			} else {
 				return null;
 			}
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while retrieving a book", e);
 			throw new RetrieveException("We were unable to find the requested book due to errors.");
 		}
@@ -340,7 +348,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 	public Loan getLoan(int cardNo, int branchId, int bookId) throws TransactionException {
 		try {
 			return loanDao.getLoanByIds(bookId, branchId, cardNo);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			LOGGER.log(Level.SEVERE, "Error while retrieving loans", e);
 			throw new RetrieveException("We were unable to find the requested loan due to errors.");
 		}
