@@ -21,8 +21,7 @@ public class Copies {
 	 */
 	@EmbeddedId
 	private CopiesCompositeKey compositeKey;
-
-    
+	
     @Column(name = "noOfCopies")
     private int noOfCopies;
 
@@ -58,11 +57,18 @@ public class Copies {
 		this.noOfCopies = noOfCopies;
 	}
 
+	/**
+	 * We use the ID from book and branch for this object's hash-code.
+	 */
 	@Override
 	public int hashCode() {
 		return Objects.hash(getBook(), getBranch());
 	}
 
+	/**
+	 * An object is equal to this one iff it is a Copies with the
+	 * same primary keys, and noOfCopies
+	 */
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj) {
@@ -80,9 +86,4 @@ public class Copies {
 	public String toString() {
 		return getBranch().getName() + " has " + noOfCopies + " copies of " + getBook().getTitle() + ".";
 	}
-    
-    
-	
-	
-
 }

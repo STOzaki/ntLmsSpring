@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Table(name = "tbl_borrower")
 public class Borrower implements Serializable {
 	/**
-	 * 
+	 * current version of this implementation
 	 */
 	private static final long serialVersionUID = 1L;
 	/**

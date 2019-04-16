@@ -26,7 +26,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 @Table(name = "tbl_book")
 public class Book implements Serializable {
 	/**
-	 * 
+	 * current version of this implementation
 	 */
 	private static final long serialVersionUID = 1L;
 	/**
@@ -56,23 +56,6 @@ public class Book implements Serializable {
 //	 * The publisher of the book.
 //	 */
 //	private Publisher publisher;
-//
-//	/**
-//	 * Constructing a book object requires its ID number, title, author, and
-//	 * publisher.
-//	 *
-//	 * @param id        the ID number to refer to the book by
-//	 * @param title     the title of the book, which should not be null
-//	 * @param author    the author of the book, or null if no author
-//	 * @param publisher the publisher of the book, or null if no publisher
-//	 */
-//	public Book(final int id, final String title, final Author author, final Publisher publisher) {
-//		this.id = id;
-//		this.title = title;
-//		this.author = author;
-//		this.publisher = publisher;
-//	}
-//
 	
 	/**
 	 * Get the title of the book, which will not be null.

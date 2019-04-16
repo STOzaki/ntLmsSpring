@@ -4,18 +4,14 @@ import java.io.Serializable;
 import java.util.Objects;
 
 import javax.persistence.Embeddable;
-import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
-
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Embeddable
 public class LoanCompositeKey implements Serializable {
     
     /**
-	 * 
+	 * current version of this implementation
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -23,8 +19,6 @@ public class LoanCompositeKey implements Serializable {
 	/**
 	 * The book that is associated with the number of copies.
 	 */
-//	@JsonBackReference
-//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne()
     @JoinColumn(name="bookId")
 	private Book book;
@@ -33,16 +27,12 @@ public class LoanCompositeKey implements Serializable {
     /**
 	 * The branch from which the book was checked out.
 	 */
-//	@JsonBackReference
-//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne()
     @JoinColumn(name="branchId")
 	private Branch branch;
 	/**
 	 * The borrower who checked out the book.
 	 */
-//	@JsonBackReference
-//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne()
     @JoinColumn(name="cardNo")
 	private Borrower borrower;
@@ -80,6 +70,10 @@ public class LoanCompositeKey implements Serializable {
 		return borrower;
 	}
 
+	/**
+	 * An object is equal to this one iff it is a Borrower with the same card
+	 * number, branch with the same id, and book with the same id.
+	 */
 	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -92,6 +86,9 @@ public class LoanCompositeKey implements Serializable {
         }
     }
  
+	/**
+	 * We use the ID from book, borrower, and branch for this object's hash-code.
+	 */
     @Override
     public int hashCode() {
     	return Objects.hash(book.getId(), borrower.getCardNo(), branch.getId());
