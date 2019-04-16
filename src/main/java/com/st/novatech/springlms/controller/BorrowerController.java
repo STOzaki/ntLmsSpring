@@ -320,4 +320,16 @@ public class BorrowerController {
 			}
 		}
 	}
+	
+	/**
+	 * Gives client a list of all branches
+	 * 
+	 * @return	a list of all branches
+	 * @throws TransactionException	if something goes wrong with the execution of the query (throws a criticalError)
+	 */
+	@GetMapping(path = "/branches")
+	public ResponseEntity<List<Branch>> getAllBranches() throws TransactionException {
+		List<Branch> listOfAllBranches = borrowerService.getAllBranches();
+		return new ResponseEntity<List<Branch>>(listOfAllBranches, HttpStatus.OK);
+	}
 }

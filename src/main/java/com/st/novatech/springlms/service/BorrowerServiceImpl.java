@@ -13,12 +13,14 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
 import com.st.novatech.springlms.dao.BookDao;
 import com.st.novatech.springlms.dao.BookLoansDao;
 import com.st.novatech.springlms.dao.BorrowerDao;
 import com.st.novatech.springlms.dao.CopiesDao;
 //import com.st.novatech.springlms.dao.DBConnectionFactory;
 import com.st.novatech.springlms.dao.LibraryBranchDao;
+import com.st.novatech.springlms.exception.CriticalSQLException;
 import com.st.novatech.springlms.exception.DeleteException;
 import com.st.novatech.springlms.exception.InsertException;
 import com.st.novatech.springlms.exception.RetrieveException;
@@ -134,16 +136,17 @@ public final class BorrowerServiceImpl implements BorrowerService {
 //	public BorrowerServiceImpl() throws IOException, SQLException {
 //		this(DBConnectionFactory.getDatabaseConnection());
 //	}
-//
-//	@Override
-//	public List<Branch> getAllBranches() throws TransactionException {
-//		try {
-//			return branchDao.getAll();
-//		} catch (final SQLException except) {
-//			LOGGER.log(Level.SEVERE,  "SQL error while getting all branches", except);
+
+	@Override
+	public List<Branch> getAllBranches() throws TransactionException {
+		try {
+		return branchDao.findAll();
+		} catch (final Exception except) {
+			LOGGER.log(Level.SEVERE,  "Error while getting all branches", except);
+			throw new CriticalSQLException("Error occured while getting all branches failed", except);
 //			throw rollback(new UnknownSQLException("Getting all branches failed", except));
-//		}
-//	}
+		}
+	}
 
 	@Override
 	public Loan borrowBook(final Borrower borrower, final Book book,
