@@ -248,8 +248,18 @@ public final class BorrowerServiceImpl implements BorrowerService {
 	}
 
 	@Override
-	public Borrower getBorrower(final int cardNo) {
-		return borrowerDao.findById(cardNo).get();
+	public Borrower getBorrower(final int cardNo) throws TransactionException {
+		try {
+			Optional<Borrower> foundBorrower = borrowerDao.findById(cardNo);
+			if(foundBorrower.isPresent()) {
+				return foundBorrower.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while retrieving a borrower", e);
+			throw new RetrieveException("We were unable to find the requested borrower due to errors.");
+		}
 //		try {
 //			return borrowerDao.get(cardNo);
 //		} catch (final SQLException except) {
@@ -278,39 +288,63 @@ public final class BorrowerServiceImpl implements BorrowerService {
 //	}
 
 	@Override
-	public Branch getbranch(int branchId) {
-		Branch foundbranch = branchDao.findById(branchId).get();
+	public Branch getbranch(int branchId) throws TransactionException {
+		try {
+			Optional<Branch> foundbranch = branchDao.findById(branchId);
+			if(foundbranch.isPresent()) {
+				return foundbranch.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while retrieving a branch", e);
+			throw new RetrieveException("We were unable to find the requested branch due to errors.");
+		}
+		
 //		try {
 //			foundbranch = branchDao.get(branchId);
 //		} catch (final SQLException except) {
 //			LOGGER.log(Level.SEVERE, "SQL error while getting a branch", except);
 //			throw rollback(new RetrieveException("Getting a branch failed", except));
 //		}
-		return foundbranch;
 	}
 
 	@Override
-	public Book getBook(int bookId) {
-		Book foundbook = bookDao.findById(bookId).get();
+	public Book getBook(int bookId) throws TransactionException {
+		try {
+			Optional<Book> foundbook = bookDao.findById(bookId);
+			if(foundbook.isPresent()) {
+				return foundbook.get();
+			} else {
+				return null;
+			}
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while retrieving a book", e);
+			throw new RetrieveException("We were unable to find the requested book due to errors.");
+		}
+		
 //		try {
 //			foundbook = bookDao.get(bookId);
 //		} catch (final SQLException except) {
 //			LOGGER.log(Level.SEVERE, "SQL error while getting a book", except);
 //			throw rollback(new RetrieveException("Getting a book failed", except));
 //		}
-		return foundbook;
 	}
 
 	@Override
-	public Loan getLoan(int cardNo, int branchId, int bookId){
-		Loan foundLoan = loanDao.getLoanByIds(bookId, branchId, cardNo);
+	public Loan getLoan(int cardNo, int branchId, int bookId) throws TransactionException {
+		try {
+			return loanDao.getLoanByIds(bookId, branchId, cardNo);
+		} catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "Error while retrieving loans", e);
+			throw new RetrieveException("We were unable to find the requested loan due to errors.");
+		}
 //		try {
 //			foundLoan = loanDao.get(bookDao.get(bookId), borrowerDao.get(cardNo), branchDao.get(branchId));
 //		} catch (final SQLException except) {
 //			LOGGER.log(Level.SEVERE, "SQL error while getting a Loan record", except);
 //			throw rollback(new RetrieveException("Getting a Loan failed", except));
 //		}
-		return foundLoan;
 	}
 	
 	/**

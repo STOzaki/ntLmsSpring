@@ -298,7 +298,7 @@ public class BorrowerController {
 		try {
 			Loan loan = borrowerService.getLoan(cardNo, branchId, bookId);
 			if(loan == null) {
-				throw new RetrieveException("Requested loan not found");
+				 throw new RetrieveException("Requested loan not found");
 			} else {
 				return new ResponseEntity<Loan>(loan, HttpStatus.OK);
 			}
