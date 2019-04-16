@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.st.novatech.springlms.exception.AlreadyBorrowedException;
 import com.st.novatech.springlms.exception.NoCopiesException;
@@ -51,10 +52,6 @@ public class BorrowerController {
 	 * @return	Loans if created correctly with an appropriate http code,
 	 * 	else an appropriate http error code
 	 * @throws TransactionException		if something goes wrong with any of the transactions
-	 * @throws AlreadyBorrowedException	if the borrrower already borrowed the requested
-	 * 	book from the requested branch
-	 * @throws NoCopiesException		if there are no copies for the requested book in
-	 * 	the requested branch
 	 */
 	@RequestMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}/borrow", method = RequestMethod.POST)
 	public ResponseEntity<Loan> borrowBook(@PathVariable("cardNo") int cardNo,
@@ -63,24 +60,34 @@ public class BorrowerController {
 		Borrower foundBorrower = borrowerService.getBorrower(cardNo);
 		Book foundBook = borrowerService.getBook(bookId);
 		Branch foundBranch = borrowerService.getbranch(branchId);
-		try {
-			Loan foundLoan = borrowerService.getLoan(cardNo, branchId, bookId);
-			if(foundLoan != null) {
-				throw new AlreadyBorrowedException("You have already borrowed the requsted book");
-			} else {
-				Loan newLoan = borrowerService.borrowBook(foundBorrower, foundBook, foundBranch,
-						LocalDateTime.now(), LocalDate.now().plusWeeks(1));
-				if(newLoan == null) {
-					throw new NoCopiesException("There are no copies for the requsted book in this library branch");
+		if(foundBook == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested book");
+		} else if(foundBorrower == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested borrower");
+		} else if(foundBranch == null) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested branch");
+		} else {
+			try {
+				Loan foundLoan = borrowerService.getLoan(cardNo, branchId, bookId);
+				if(foundLoan != null) {
+					throw new ResponseStatusException(HttpStatus.CONFLICT, "You have already borrowed " +
+							foundBook.getTitle() + " from " + foundBranch.getName());
 				} else {
-					return new ResponseEntity<Loan>(newLoan, HttpStatus.CREATED);
+					Loan newLoan = borrowerService.borrowBook(foundBorrower, foundBook, foundBranch,
+							LocalDateTime.now(), LocalDate.now().plusWeeks(1));
+					if(newLoan == null) {
+						throw new ResponseStatusException(HttpStatus.CONFLICT, "There are no copies for " + foundBook.getTitle() + 
+								" at " + foundBranch.getName());
+					} else {
+						return new ResponseEntity<Loan>(newLoan, HttpStatus.CREATED);
+					}
 				}
-			}
-		} catch (TransactionException exception) {
-			if(exception.getSuppressed().length > 0) {
-				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-			} else {
-				throw exception;
+			} catch (TransactionException exception) {
+				if(exception.getSuppressed().length > 0) {
+					return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+				} else {
+					throw exception;
+				}
 			}
 		}
 	}
@@ -101,7 +108,7 @@ public class BorrowerController {
 		try {
 			Branch foundBranch = borrowerService.getbranch(branchId);
 			if(foundBranch == null) {
-				throw new RetrieveException("Requested branch not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Could not find the requested branch");
 			}
 			List<Copies> listOfAllBranchCopies = borrowerService.getAllBranchCopies(foundBranch);
 			return new ResponseEntity<List<Copies>>(listOfAllBranchCopies, HttpStatus.OK);
@@ -135,11 +142,11 @@ public class BorrowerController {
 			Branch branch = borrowerService.getbranch(branchId);
 			Book book = borrowerService.getBook(bookId);
 			if(borrower == null) {
-				throw new RetrieveException("Requested borrower not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested borrower not found");
 			} else if(branch == null) {
-				throw new RetrieveException("Requested branch not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested branch not found");
 			} else if(book == null) {
-				throw new RetrieveException("Requested book not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested book not found");
 			} else {
 				// non of the given ids were incorrect
 				Boolean success = borrowerService.returnBook(borrower, book, branch, LocalDate.now());
@@ -174,7 +181,7 @@ public class BorrowerController {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
 			if(foundBorrower == null) {
-				throw new RetrieveException("Requested borrower not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested borrower not found");
 			}
 			List<Branch> listOfBranchesForBorrowerWithLoans = borrowerService.getAllBranchesWithLoan(foundBorrower);
 			return new ResponseEntity<List<Branch>>(listOfBranchesForBorrowerWithLoans, HttpStatus.OK);
@@ -200,7 +207,7 @@ public class BorrowerController {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
 			if(foundBorrower == null) {
-				throw new RetrieveException("Requested borrower not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested borrower not found");
 			}
 			List<Loan> listOfLoansForBorrower = borrowerService.getAllBorrowedBooks(foundBorrower);
 			return new ResponseEntity<List<Loan>>(listOfLoansForBorrower, HttpStatus.OK);
@@ -226,7 +233,7 @@ public class BorrowerController {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
 			if(foundBorrower == null) {
-				throw new RetrieveException("Requested borrower not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested borrower not found");
 			} else {
 				return new ResponseEntity<Borrower>(foundBorrower, HttpStatus.OK);
 			}
@@ -252,7 +259,7 @@ public class BorrowerController {
 		try {
 			Branch foundBranch = borrowerService.getbranch(branchId);
 			if(foundBranch == null) {
-				throw new RetrieveException("Requested branch not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested branch not found");
 			} else {
 				return new ResponseEntity<Branch>(foundBranch, HttpStatus.OK);
 			}
@@ -278,7 +285,7 @@ public class BorrowerController {
 		try {
 			Book foundBook = borrowerService.getBook(bookId);
 			if(foundBook == null) {
-				throw new RetrieveException("Requested book not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested book not found");
 			} else {
 				return new ResponseEntity<Book>(foundBook, HttpStatus.OK);
 			}
@@ -308,7 +315,7 @@ public class BorrowerController {
 		try {
 			Loan loan = borrowerService.getLoan(cardNo, branchId, bookId);
 			if(loan == null) {
-				 throw new RetrieveException("Requested loan not found");
+				throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Requested loan not found");
 			} else {
 				return new ResponseEntity<Loan>(loan, HttpStatus.OK);
 			}
