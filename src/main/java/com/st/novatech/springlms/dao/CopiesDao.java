@@ -31,6 +31,16 @@ public interface CopiesDao extends JpaRepository<Copies, Integer> {
 	 */
 	@Query(value = "SELECT * FROM tbl_book_copies c WHERE c.branchId = ? AND c.bookId = ?", nativeQuery = true)
 	public Copies getCopiesByIds(int branchId, int bookId) throws SQLException;
+	
+	/**
+	 * Get all copies of the requested branch
+	 * 
+	 * @param branchId	The id of the branch in question
+	 * @return	list of copies from the requested branch
+	 * @throws SQLException	on unexpected error in dealing with the database.
+	 */
+	@Query(value = "SELECT * FROM tbl_book_copies c WHERE c.branchId = ?", nativeQuery = true)
+	public List<Copies> getAllBranchCopies(int branchId) throws SQLException;
 
 	/**
 	 * create Copies entry

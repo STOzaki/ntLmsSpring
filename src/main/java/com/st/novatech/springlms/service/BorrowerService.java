@@ -9,6 +9,7 @@ import com.st.novatech.springlms.exception.TransactionException;
 import com.st.novatech.springlms.model.Book;
 import com.st.novatech.springlms.model.Borrower;
 import com.st.novatech.springlms.model.Branch;
+import com.st.novatech.springlms.model.Copies;
 import com.st.novatech.springlms.model.Loan;
 
 /**
@@ -34,15 +35,14 @@ public interface BorrowerService extends Service {
 	 */
 	Loan borrowBook(Borrower borrower, Book book, Branch branch,
 			LocalDateTime dateOut, LocalDate dueDate) throws TransactionException;
-//
-//	/**
-//	 * Get all book-copy counts for the given branch.
-//	 *
-//	 * @param branch the branch in question
-//	 * @return a mapping from books in that library to the number of copies of each
-//	 *         that it has.
-//	 */
-//	Map<Book, Integer> getAllBranchCopies(Branch branch) throws TransactionException;
+
+	/**
+	 * Get all book-copy counts for the given branch.
+	 *
+	 * @param branch the branch in question
+	 * @return a list of copies for the requested branch.
+	 */
+	List<Copies> getAllBranchCopies(Branch branch) throws TransactionException;
 
 	/**
 	 * Handle a returned book: if there is an outstanding loan of the given book to

@@ -28,6 +28,7 @@ import com.st.novatech.springlms.exception.UnknownSQLException;
 import com.st.novatech.springlms.model.Book;
 import com.st.novatech.springlms.model.Borrower;
 import com.st.novatech.springlms.model.Branch;
+import com.st.novatech.springlms.model.Copies;
 import com.st.novatech.springlms.model.Loan;
 import com.st.novatech.springlms.util.ThrowingRunnable;
 
@@ -173,17 +174,18 @@ public final class BorrowerServiceImpl implements BorrowerService {
 //			throw rollback(new InsertException("Creating a loan failed", except));
 		}
 	}
-//
-//	@Override
-//	public Map<Book, Integer> getAllBranchCopies(final Branch branch)
-//			throws TransactionException {
-//		try {
-//			return copiesDao.getAllBranchCopies(branch);
-//		} catch (final SQLException except) {
-//			LOGGER.log(Level.SEVERE, "SQL error while getting branch copies", except);
+
+	@Override
+	public List<Copies> getAllBranchCopies(final Branch branch)
+			throws TransactionException {
+		try {
+			return copiesDao.getAllBranchCopies(branch.getId());
+		} catch (final Exception except) {
+			LOGGER.log(Level.SEVERE, "Error while getting branch copies", except);
+			throw new UnknownSQLException("Getting branch copy records failed", except);
 //			throw rollback(new UnknownSQLException("Getting branch copy records failed", except));
-//		}
-//	}
+		}
+	}
 
 	@Override
 	public Boolean returnBook(final Borrower borrower, final Book book,
