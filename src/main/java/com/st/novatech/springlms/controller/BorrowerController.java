@@ -48,7 +48,7 @@ public class BorrowerController {
 	 * 	else an appropriate http error code
 	 * @throws TransactionException		if something goes wrong with any of the transactions
 	 */
-	@PostMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}/borrow")
+	@PostMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}")
 	public ResponseEntity<Loan> borrowBook(@PathVariable("cardNo") int cardNo,
 			@PathVariable("branchId") int branchId,
 			@PathVariable("bookId") int bookId) {
@@ -96,7 +96,7 @@ public class BorrowerController {
 	 * @throws TransactionException	A retrieval exception will be thrown if the branch associated to
 	 * the branch id given does not exist or if the search for the book copies list failed.
 	 */
-	@GetMapping(path = "/branch/{branchId}/books/copies")
+	@GetMapping(path = "/branch/{branchId}/copies")
 	public ResponseEntity<List<Copies>> getAllBranchCopies(@PathVariable("branchId") int branchId) {
 		try {
 			Branch foundBranch = borrowerService.getbranch(branchId);
@@ -126,7 +126,7 @@ public class BorrowerController {
 	 * the book copies and throws a DeleteException if something goes wrong with deleting the
 	 * entry
 	 */
-	@DeleteMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}/return")
+	@DeleteMapping(path = "/borrower/{cardNo}/branch/{branchId}/book/{bookId}")
 	public ResponseEntity<String> returnBook(@PathVariable("cardNo") int cardNo,
 			@PathVariable("branchId") int branchId, @PathVariable("bookId") int bookId) {
 		try {
@@ -166,7 +166,7 @@ public class BorrowerController {
 	 * or will return 500(an internal server error) the roll back fails
 	 * @throws TransactionException retrieve exception if it cannot find the given borrower
 	 */
-	@GetMapping(path = "/borrower/{cardNo}/loansWithBranch")
+	@GetMapping(path = "/borrower/{cardNo}/branches")
 	public ResponseEntity<List<Branch>> getAllBranchesWithLoan(@PathVariable("cardNo") int cardNo) {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
@@ -190,7 +190,7 @@ public class BorrowerController {
 	 * or will return 500(an internal server error) the roll back fails
 	 * @throws TransactionException	retrieve exception if it cannot find the given borrower
 	 */
-	@GetMapping(path = "/borrower/{cardNo}/borrowerLoans")
+	@GetMapping(path = "/borrower/{cardNo}/loans")
 	public ResponseEntity<List<Loan>> getAllBorrowedBooks(@PathVariable("cardNo") int cardNo) {
 		try {
 			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
