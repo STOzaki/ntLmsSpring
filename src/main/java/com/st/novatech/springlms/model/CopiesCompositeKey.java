@@ -13,7 +13,7 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 public class CopiesCompositeKey implements Serializable {
     
     /**
-	 * 
+	 * current version of this implementation
 	 */
 	private static final long serialVersionUID = 1L;
 
@@ -21,7 +21,6 @@ public class CopiesCompositeKey implements Serializable {
 	 * The book that is associated with the number of copies.
 	 */
 	@JsonBackReference
-//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne()
     @JoinColumn(name="bookId")
 	private Book book;
@@ -30,7 +29,6 @@ public class CopiesCompositeKey implements Serializable {
 	 * The branch that is associated with the number of copies.
 	 */
 	@JsonBackReference
-//    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     @ManyToOne()
     @JoinColumn(name="branchId", insertable = false, updatable = false)
 	private Branch branch;
@@ -61,7 +59,9 @@ public class CopiesCompositeKey implements Serializable {
 		return branch;
 	}
 
-
+	/**
+	 * An object is equal to this one iff it is a branch and book with the same ids
+	 */
 	@Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -72,7 +72,10 @@ public class CopiesCompositeKey implements Serializable {
         	return false;
         }
     }
- 
+
+	/**
+	 * We use the ID from book and branch for this object's hash-code.
+	 */
     @Override
     public int hashCode() {
     	return Objects.hash(book.getId(), branch.getId());

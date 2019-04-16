@@ -81,32 +81,4 @@ public interface CopiesDao extends JpaRepository<Copies, Integer> {
 	@Query(value = "DELETE FROM tbl_book_copies WHERE branchId = ? AND bookId = ?", nativeQuery = true)
 	@Transactional
 	public void deleteCopies(int branchId, int bookId) throws SQLException;
-//
-//	/**
-//	 * Retrieve all copies held by the given branch, as a mapping from books to the
-//	 * number held.
-//	 *
-//	 * @param branch the branch in question
-//	 * @return the number of copies of all books the branch holds.
-//	 * @throws SQLException on unexpected error in dealing with the database.
-//	 */
-//	Map<Book, Integer> getAllBranchCopies(Branch branch) throws SQLException;
-//
-//	/**
-//	 * Retrieve all copies of the given book held by any branch, as a mapping from
-//	 * branches to the number of copies of the book they hold.
-//	 *
-//	 * @param book the book in question
-//	 * @return the number of copies of that book in each branch that holds it.
-//	 * @throws SQLException on unexpected error in dealing with the database.
-//	 */
-//	Map<Branch, Integer> getAllBookCopies(Book book) throws SQLException;
-//
-//	/**
-//	 * Retrieve a list of all copies of all books held by all branches.
-//	 *
-//	 * @return the number of copies of all books in all branches.
-//	 * @throws SQLException on unexpected error in dealing with the database.
-//	 */
-//	List<Copies> getAllCopies() throws SQLException;
 }

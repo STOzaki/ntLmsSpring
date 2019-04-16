@@ -35,26 +35,6 @@ public class Loan {
 	 */
 	@Column(name = "dueDate")
 	private LocalDate dueDate;
-//
-//	/**
-//	 * To construct a Loan object, the caller must supply the book, borrower, and
-//	 * branch that identify the loan in question and the dates the book was checked
-//	 * out and is due.
-//	 *
-//	 * @param book     the book that was checked out
-//	 * @param borrower the borrower who checked it out
-//	 * @param branch   the branch from which it was borrowed
-//	 * @param dateOut  when it was checked out
-//	 * @param dueDate  when it is due
-//	 */
-//	public Loan(final Book book, final Borrower borrower, final Branch branch,
-//			final LocalDateTime dateOut, final LocalDate dueDate) {
-//		this.book = book;
-//		this.borrower = borrower;
-//		this.branch = branch;
-//		this.dateOut = dateOut;
-//		this.dueDate = dueDate;
-//	}
 
 	/**
 	 * Get the book that is involved in this loan.
