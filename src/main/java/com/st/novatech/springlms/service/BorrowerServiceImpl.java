@@ -224,12 +224,12 @@ public final class BorrowerServiceImpl implements BorrowerService {
 		}
 	}
 
-//	@Override
-//	public List<Branch> getAllBranchesWithLoan(final Borrower borrower) {
-////			throws TransactionException {
-//		return getAllBorrowedBooks(borrower).parallelStream().map(b -> b.getBranch())
-//				.collect(Collectors.toList());
-//	}
+	@Override
+	public List<Branch> getAllBranchesWithLoan(final Borrower borrower) {
+//			throws TransactionException {
+		return getAllBorrowedBooks(borrower).parallelStream().map(b -> b.getBranch())
+				.collect(Collectors.toList());
+	}
 
 	@Override
 	public List<Loan> getAllBorrowedBooks(final Borrower borrower) {

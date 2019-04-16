@@ -150,32 +150,32 @@ public class BorrowerController {
 			}
 		}
 	}
-//	
-//	/**
-//	 * Get all branches from which the borrower has an outstanding book loan.
-//	 * 
-//	 * @param cardNo	id for a particular borrower
-//	 * @return			200(OK) if the borrower exists in the database and if everything goes correctly
-//	 * or will return 500(an internal server error) the roll back fails
-//	 * @throws TransactionException retrieve exception if it cannot find the given borrower
-//	 */
-//	@GetMapping(path = "/borrower/{cardNo}/loansWithBranch")
-//	public ResponseEntity<List<Branch>> getAllBranchesWithLoan(@PathVariable("cardNo") int cardNo) throws TransactionException {
-//		try {
-//			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
-//			if(foundBorrower == null) {
-//				throw new RetrieveException("Requested borrower not found");
-//			}
-//			List<Branch> listOfBranchesForBorrowerWithLoans = borrowerService.getAllBranchesWithLoan(foundBorrower);
-//			return new ResponseEntity<List<Branch>>(listOfBranchesForBorrowerWithLoans, HttpStatus.OK);
-//		} catch (TransactionException exception) {
-//			if(exception.getSuppressed().length > 0) {
-//				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-//			} else {
-//				throw exception;
-//			}
-//		}
-//	}
+	
+	/**
+	 * Get all branches from which the borrower has an outstanding book loan.
+	 * 
+	 * @param cardNo	id for a particular borrower
+	 * @return			200(OK) if the borrower exists in the database and if everything goes correctly
+	 * or will return 500(an internal server error) the roll back fails
+	 * @throws TransactionException retrieve exception if it cannot find the given borrower
+	 */
+	@GetMapping(path = "/borrower/{cardNo}/loansWithBranch")
+	public ResponseEntity<List<Branch>> getAllBranchesWithLoan(@PathVariable("cardNo") int cardNo) throws TransactionException {
+		try {
+			Borrower foundBorrower = borrowerService.getBorrower(cardNo);
+			if(foundBorrower == null) {
+				throw new RetrieveException("Requested borrower not found");
+			}
+			List<Branch> listOfBranchesForBorrowerWithLoans = borrowerService.getAllBranchesWithLoan(foundBorrower);
+			return new ResponseEntity<List<Branch>>(listOfBranchesForBorrowerWithLoans, HttpStatus.OK);
+		} catch (TransactionException exception) {
+			if(exception.getSuppressed().length > 0) {
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			} else {
+				throw exception;
+			}
+		}
+	}
 	
 	/**
 	 * Get all book loans the borrower has borrowed from any library branch.

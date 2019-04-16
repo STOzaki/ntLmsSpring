@@ -58,13 +58,13 @@ public interface BorrowerService extends Service {
 	Boolean returnBook(Borrower borrower, Book book, Branch branch,
 			LocalDate returnDate) throws TransactionException;
 
-//	/**
-//	 * Get all branches from which the borrower has an outstanding loan.
-//	 *
-//	 * @param borrower in question
-//	 * @return all branches the borrower owes a book return to.
-//	 */
-//	List<Branch> getAllBranchesWithLoan(Borrower borrower);
+	/**
+	 * Get all branches from which the borrower has an outstanding loan.
+	 *
+	 * @param borrower in question
+	 * @return all branches the borrower owes a book return to.
+	 */
+	List<Branch> getAllBranchesWithLoan(Borrower borrower);
 
 	/**
 	 * Get all book loans the borrower has borrowed from any library branch.
