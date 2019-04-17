@@ -27,6 +27,7 @@ import com.st.novatech.springlms.model.Loan;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * The "service" class to help UIs for borrowers.
@@ -34,7 +35,7 @@ import org.springframework.stereotype.Service;
  * @author Jonathan Lovelace
  */
 @Service("BorrowerService")
-public final class BorrowerServiceImpl implements BorrowerService {
+public class BorrowerServiceImpl implements BorrowerService {
 	/**
 	 * The DAO for the "branches" table.
 	 */
@@ -76,6 +77,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 		}
 	}
 
+	@Transactional
 	@Override
 	public Loan borrowBook(final Borrower borrower, final Book book,
 			final Branch branch, final LocalDateTime dateOut,
@@ -116,6 +118,7 @@ public final class BorrowerServiceImpl implements BorrowerService {
 		}
 	}
 
+	@Transactional
 	@Override
 	public Boolean returnBook(final Borrower borrower, final Book book,
 			final Branch branch, final LocalDate dueDate)
